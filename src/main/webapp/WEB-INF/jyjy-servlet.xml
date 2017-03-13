@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+      http://www.springframework.org/schema/beans/spring-beans.xsd  
+      http://www.springframework.org/schema/context  
+      http://www.springframework.org/schema/context/spring-context.xsd  
+      http://www.springframework.org/schema/mvc  
+      http://www.springframework.org/schema/mvc/spring-mvc.xsd
+      http://www.springframework.org/schema/task
+      http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<context:component-scan base-package="com.wake.controller" />
+	<!-- 
+	   <task:annotation-driven />  
+    <task:scheduled-tasks scheduler="myScheduler">  
+    <task:scheduled ref="PushmsgController" method="PushmsgTask" cron="0 0 0 * * ?"/>  
+    </task:scheduled-tasks>  
+    <task:scheduler id="myScheduler" pool-size="10"/> 
+    
+    -->
+       
+	 <task:annotation-driven />  
+	 
+	 <task:scheduled-tasks scheduler="myScheduler">  
+	    <!-- 待审短信 每10分钟发一次 -->
+     	<task:scheduled ref="smsCheckTask" method="smsCheckTask" cron="0 0/10 * * * ?"/>  
+     	<!-- 待发短信 每5分钟发一次 -->
+     	<task:scheduled ref="smsCheckTask" method="submitQueueCheckTask" cron="0 0/5 * * * ?"/> 
+     </task:scheduled-tasks>  
+     <task:scheduler id="myScheduler" pool-size="10"/> 
+  
+	<task:scheduled-tasks>
+		<!-- 每2小时更新天气预报，每台tomcat都需启动，结果放在内存中 -->
+        <task:scheduled ref="weatherTask" method="updateWeatherInfo" cron="0 0 0/2 * * ?"/>
+		<!-- 每5分钟更新投票统计结果，只需一台tomcat启动，结果放在redis中 -->
+        <task:scheduled ref="voteStatisticTask" method="updateVoteStat" cron="0 0/5 * * * ?"/>
+	</task:scheduled-tasks>
+	
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/pages/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+        <property name="defaultEncoding" value="utf-8"></property>   
+        <property name="maxUploadSize" value="10485760000"></property>  
+        <property name="maxInMemorySize" value="40960"></property>  
+   	</bean>
+	
+	<mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+						<value>text/html;charset=UTF-8</value>
+						<!-- <value>application/octet-stream;charset=UTF-8</value> -->
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	
+	<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">   
+	    <property name="favorPathExtension" value="false" />  
+	    <property name="favorParameter" value="false" />   
+	    <property name="ignoreAcceptHeader" value="false" />   
+	</bean>  
+	
+	<!-- 配置拦截器, 多个拦截器,顺序执行 -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<!-- 拦截请求url路径 -->
+			<mvc:mapping path="/mana_change/**" />
+			<bean class="com.wake.interceptor.LimitRequestDateInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors> 
+	
+</beans>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+    <description>commonFunctions</description>
+    <tlib-version>3.0</tlib-version>
+    <short-name>comfn</short-name>
+    <uri>http://wake/tags/common-functions</uri>
+    
+    <function>
+        <description>根据id获取用户信息</description>
+        <name>usersInfo</name>
+        <function-class>com.wake.taglib.CommonFunctions</function-class>
+        <function-signature>com.wake.entity.Users usersInfo(java.lang.Long)</function-signature>
+    </function>
+    
+</taglib>
